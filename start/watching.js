@@ -1,7 +1,14 @@
+const interval = 60000;
+
+function run(client) {
+  client.user.setActivity(`${client.guilds.cache.size} servers`, { type: 'WATCHING' });
+}
 module.exports = {
   name: 'watching',
   execute(client) {
-    client.user.setActivity(`${client.guilds.cache.size} servers`, { type: 'WATCHING' });
+    run(client);
+    setInterval(() => {
+      run(client);
+    }, interval);
   },
-  interval: 60000,
 };

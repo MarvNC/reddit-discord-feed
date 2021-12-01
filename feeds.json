@@ -1,9 +1,10 @@
 {
-  "feeds": [
+  "redditFeeds": [
     {
       "slug": "r/mobuseka",
-      "channel": "655285820546351164",
-      "spoiler": false
+      "channel": "687818646000894074",
+      "spoiler": false,
+      "nsfw": false
     }
   ]
 }
