@@ -6,7 +6,7 @@ const entities = require('entities');
 const { MessageEmbed } = require('discord.js');
 
 // 60 seconds
-const interval = 30 * 1000;
+const interval = 60 * 1000;
 const subredditUrl = (slug, comments = false) =>
   `http://www.reddit.com/${slug}/${comments ? 'comments' : 'new'}.json?limit=15`;
 
@@ -24,13 +24,14 @@ async function run(client) {
     });
 
     if (!response.ok) {
-      console.log(response.statusText);
+      console.log(url, response.statusText);
       continue;
     }
 
     const json = await response.json();
     const { data } = json;
     const { children } = data;
+
     for (child of children.reverse()) {
       const post = child.data;
 
@@ -41,9 +42,10 @@ async function run(client) {
       }
 
       const embed = new MessageEmbed()
-        .setURL(`https://reddit.com` + post.permalink)
         .setFooter(`/u/${post.author} on r/${post.subreddit}`)
         .setTimestamp(post.created_utc * 1000);
+
+      let redditUrl = `https://reddit.com` + post.permalink;
 
       if (!feed.isComment) {
         const title = post.title.length > 200 ? post.title.substring(0, 200) + '...' : post.title;
@@ -54,8 +56,8 @@ async function run(client) {
           embed.setAuthor('Link: ' + new URL(post.url)?.hostname, undefined, post.url);
         }
 
-        // if the post is nsfw then check if the feed allows nsfw otherwise allow
-        // if the post is spoiler check if the feed allows spoiler otherwise allow
+        // if the post is nsfw then check if the feed allows nsfw(default false) otherwise allow
+        // if the post is spoiler check if the feed allows spoiler(default false) otherwise allow
         if (
           post.over_18
             ? feed.allowNsfw ?? false
@@ -79,11 +81,11 @@ async function run(client) {
           embed.setDescription('Post marked as NSFW/Spoilers.');
         }
       } else {
-        console.log(data);
+        redditUrl += '?context=10000';
         const title =
           post.link_title.length > 200
-            ? entities.decodeHTML(post.title.substring(0, 200)) + '...'
-            : entities.decodeHTML(post.title);
+            ? post.link_title.substring(0, 200) + '...'
+            : post.link_title;
         embed.setTitle(title);
 
         // limit comment to 2000 characters
@@ -94,9 +96,16 @@ async function run(client) {
         embed.setDescription(comment);
       }
 
-      client.channels.fetch(feed.channel).then((channel) => {
-        channel.send({ embeds: [embed] });
-      });
+      embed.setURL(redditUrl);
+
+      client.channels
+        .fetch(feed.channelID)
+        .then((channel) => {
+          channel.send({ embeds: [embed] });
+        })
+        .catch((err) => {
+          console.log(feed, err);
+        });
     }
   }
 }
