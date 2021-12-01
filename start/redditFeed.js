@@ -4,17 +4,18 @@ const fetch = require('node-fetch');
 
 const entities = require('entities');
 const { MessageEmbed } = require('discord.js');
-const { time } = require('console');
 
 // 60 seconds
 const interval = 30 * 1000;
-const subredditUrl = (slug) => `http://www.reddit.com/${slug}/new.json?limit=10`;
+const subredditUrl = (slug, comments = false) =>
+  `http://www.reddit.com/${slug}/${comments ? 'comments' : 'new'}.json?limit=15`;
 
 let lastTimeStamp = 0;
 
 async function run(client) {
+  console.log('Running reddit feed');
   for (feed of redditFeeds) {
-    const url = subredditUrl(feed.slug);
+    const url = subredditUrl(feed.slug, feed.isComment);
 
     const response = await fetch(url, {
       headers: {
@@ -31,36 +32,66 @@ async function run(client) {
     const { data } = json;
     const { children } = data;
     for (child of children.reverse()) {
-      const data = child.data;
+      const post = child.data;
 
-      if (data.created_utc < lastTimeStamp) {
+      if (post.created_utc < lastTimeStamp) {
         continue;
       } else {
-        lastTimeStamp = data.created_utc;
+        lastTimeStamp = post.created_utc;
       }
 
       const embed = new MessageEmbed()
-        .setTitle(data.title)
-        .setURL(`https://reddit.com` + data.permalink)
-        .setFooter(`/u/${data.author} on r/${data.subreddit}`)
-        .setTimestamp(data.created_utc * 1000);
+        .setURL(`https://reddit.com` + post.permalink)
+        .setFooter(`/u/${post.author} on r/${post.subreddit}`)
+        .setTimestamp(post.created_utc * 1000);
 
-      // url for linked content
-      if (!data.is_self) {
-        embed.setAuthor('Link: ' + new URL(data.url).hostname, undefined, data.url);
-      }
+      if (!feed.isComment) {
+        const title = post.title.length > 200 ? post.title.substring(0, 200) + '...' : post.title;
+        embed.setTitle(title);
 
-      if (data.selftext) {
-        selftext = entities.decodeHTML(data.selftext);
-        // limit length to 2000 characters
-        if (selftext.length > 2000) {
-          selftext = selftext.substring(0, 2000) + '...';
+        // url for linked content
+        if (!post.is_self) {
+          embed.setAuthor('Link: ' + new URL(post.url)?.hostname, undefined, post.url);
         }
-        embed.setDescription(selftext);
-      }
 
-      if (data.preview) {
-        embed.setImage(entities.decode(data.preview.images[0].source.url));
+        // if the post is nsfw then check if the feed allows nsfw otherwise allow
+        // if the post is spoiler check if the feed allows spoiler otherwise allow
+        if (
+          post.over_18
+            ? feed.allowNsfw ?? false
+            : true && post.spoiler
+            ? feed.allowSpoiler ?? false
+            : true
+        ) {
+          if (post.selftext) {
+            selftext = entities.decodeHTML(post.selftext);
+            // limit length to 2000 characters
+            if (selftext.length > 2000) {
+              selftext = selftext.substring(0, 2000) + '...';
+            }
+            embed.setDescription(selftext);
+          }
+
+          if (post.preview) {
+            embed.setImage(entities.decode(post.preview.images[0].source.url));
+          }
+        } else {
+          embed.setDescription('Post marked as NSFW/Spoilers.');
+        }
+      } else {
+        console.log(data);
+        const title =
+          post.link_title.length > 200
+            ? entities.decodeHTML(post.title.substring(0, 200)) + '...'
+            : entities.decodeHTML(post.title);
+        embed.setTitle(title);
+
+        // limit comment to 2000 characters
+        let comment = entities.decodeHTML(post.body);
+        if (comment.length > 2000) {
+          comment = comment.substring(0, 2000) + '...';
+        }
+        embed.setDescription(comment);
       }
 
       client.channels.fetch(feed.channel).then((channel) => {
