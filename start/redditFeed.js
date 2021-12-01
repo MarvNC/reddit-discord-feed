@@ -13,8 +13,11 @@ const subredditUrl = (slug, comments = false) =>
 let lastTimeStamp = 0;
 
 async function run(client) {
-  console.log('Running reddit feed');
-  for (feed of redditFeeds) {
+  let currentTimeStamp = lastTimeStamp;
+
+  // console.log('Last fetch: ' + Date(lastTimeStamp));
+
+  for (const feed of redditFeeds) {
     const url = subredditUrl(feed.slug, feed.isComment);
 
     const response = await fetch(url, {
@@ -32,13 +35,13 @@ async function run(client) {
     const { data } = json;
     const { children } = data;
 
-    for (child of children.reverse()) {
+    for (const child of children.reverse()) {
       const post = child.data;
 
-      if (post.created_utc < lastTimeStamp) {
+      if (post.created_utc <= lastTimeStamp) {
         continue;
       } else {
-        lastTimeStamp = post.created_utc;
+        currentTimeStamp = post.created_utc;
       }
 
       const embed = new MessageEmbed()
@@ -102,12 +105,14 @@ async function run(client) {
         .fetch(feed.channelID)
         .then((channel) => {
           channel.send({ embeds: [embed] });
+          // console.log(`Sent post in ${feed.slug} to ${channel.name}`);
         })
         .catch((err) => {
           console.log(feed, err);
         });
     }
   }
+  lastTimeStamp = currentTimeStamp;
 }
 
 module.exports = {
