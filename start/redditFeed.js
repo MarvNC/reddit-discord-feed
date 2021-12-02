@@ -56,8 +56,14 @@ async function run(client) {
 
         // url for linked content
         if (!post.is_self) {
-          embed.setAuthor('Link: ' + new URL(post.url)?.hostname, undefined, post.url);
+          let domain;
+          try {
+            domain = new URL(post.url)?.hostname;
+          } catch (error) {
+            console.log(post.url, post.permalink, error);
+          }
         }
+        embed.setAuthor('Link: ' + domain, undefined, post.url);
 
         // if the post is nsfw then check if the feed allows nsfw(default false) otherwise allow
         // if the post is spoiler check if the feed allows spoiler(default false) otherwise allow
