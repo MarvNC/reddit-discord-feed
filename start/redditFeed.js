@@ -7,8 +7,9 @@ const { MessageEmbed } = require('discord.js');
 
 // 60 seconds
 const interval = 60 * 1000;
+const REDDIT_URL = 'https://www.reddit.com';
 const subredditUrl = (slug, comments = false) =>
-  `http://www.reddit.com/${slug}/${comments ? 'comments' : 'new'}.json?limit=15`;
+  `${REDDIT_URL}${slug}/${comments ? 'comments' : 'new'}.json?limit=15`;
 
 let lastTimeStamp = 0;
 
@@ -48,7 +49,7 @@ async function run(client) {
         .setFooter(`/u/${post.author} on r/${post.subreddit}`)
         .setTimestamp(post.created_utc * 1000);
 
-      let redditUrl = `https://reddit.com` + post.permalink;
+      let redditUrl = REDDIT_URL + post.permalink;
 
       if (!feed.isComment) {
         const title = post.title.length > 200 ? post.title.substring(0, 200) + '...' : post.title;
@@ -74,7 +75,7 @@ async function run(client) {
             domain = gotUrl.domain;
             linkedURL = gotUrl.linkedURL;
           } else {
-            gotUrl = getUrl('https://reddit.com' + post.url);
+            gotUrl = getUrl(REDDIT_URL + post.url);
             domain = gotUrl?.domain ?? undefined;
             linkedURL = gotUrl?.linkedURL ?? undefined;
           }
