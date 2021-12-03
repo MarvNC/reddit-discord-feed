@@ -10,7 +10,7 @@ const { MessageEmbed } = require('discord.js');
 const interval = 60 * 1000;
 const REDDIT_URL = 'https://www.reddit.com';
 const subredditUrl = (slug, comments = false) =>
-  `/${REDDIT_URL}${slug}/${comments ? 'comments' : 'new'}.json?limit=15`;
+  `${REDDIT_URL}/${slug}/${comments ? 'comments' : 'new'}.json?limit=15`;
 
 let lastTimeStamp = 0;
 
