@@ -56,13 +56,30 @@ async function run(client) {
 
         // url for linked content
         if (!post.is_self) {
-          let domain = '';
-          try {
-            domain = new URL(post.url)?.hostname;
-          } catch (error) {
-            console.log(post.url, post.permalink, error);
+          let domain = '',
+            linkedURL = '';
+
+          let getUrl = (postURL, domain, linkedURL) => {
+            try {
+              domain = new URL(postURL)?.hostname;
+              linkedURL = new URL(postURL);
+            } catch (error) {
+              return false;
+            }
+            return { domain, linkedURL };
+          };
+
+          let gotUrl = getUrl(post.url);
+          if (gotUrl) {
+            domain = gotUrl.domain;
+            linkedURL = gotUrl.linkedURL;
+          } else {
+            gotUrl = getUrl('https://reddit.com' + post.url);
+            domain = gotUrl?.domain ?? undefined;
+            linkedURL = gotUrl?.linkedURL ?? undefined;
           }
-          embed.setAuthor('Link: ' + domain, undefined, post.url);
+
+          embed.setAuthor('Link: ' + domain, undefined, linkedURL);
         }
 
         // if the post is nsfw then check if the feed allows nsfw(default false) otherwise allow
@@ -107,15 +124,13 @@ async function run(client) {
 
       embed.setURL(redditUrl);
 
-      client.channels
-        .fetch(feed.channelID)
-        .then((channel) => {
+      try {
+        client.channels.fetch(feed.channelID).then((channel) => {
           channel.send({ embeds: [embed] });
-          // console.log(`Sent post in ${feed.slug} to ${channel.name}`);
-        })
-        .catch((err) => {
-          console.log(feed, err);
         });
+      } catch (error) {
+        console.log(feed, error);
+      }
     }
   }
   lastTimeStamp = currentTimeStamp;
