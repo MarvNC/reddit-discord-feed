@@ -1,4 +1,5 @@
 const { redditFeeds } = require('../feeds.json');
+const { version } = require('../package.json');
 
 const fetch = require('node-fetch');
 
@@ -7,9 +8,9 @@ const { MessageEmbed } = require('discord.js');
 
 // 60 seconds
 const interval = 60 * 1000;
-const REDDIT_URL = 'https://www.reddit.com/';
+const REDDIT_URL = 'https://www.reddit.com';
 const subredditUrl = (slug, comments = false) =>
-  `${REDDIT_URL}${slug}/${comments ? 'comments' : 'new'}.json?limit=15`;
+  `/${REDDIT_URL}${slug}/${comments ? 'comments' : 'new'}.json?limit=15`;
 
 let lastTimeStamp = 0;
 
@@ -23,7 +24,7 @@ async function run(client) {
 
     const response = await fetch(url, {
       headers: {
-        'User-Agent': 'reddit-feed-bot:0.1',
+        'User-Agent': `reddit-feed-bot:${version}`,
       },
     });
 
