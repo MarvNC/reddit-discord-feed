@@ -43,7 +43,7 @@ async function run(client) {
       if (post.created_utc <= lastTimeStamp) {
         continue;
       } else {
-        currentTimeStamp = post.created_utc;
+        currentTimeStamp = Math.max(post.created_utc, currentTimeStamp);
       }
 
       const embed = new MessageEmbed()
