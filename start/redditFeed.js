@@ -20,22 +20,27 @@ async function run(client) {
   // console.log('Last fetch: ' + Date(lastTimeStamp));
 
   for (const feed of redditFeeds) {
+    let children;
     const url = subredditUrl(feed.slug, feed.isComment);
 
-    const response = await fetch(url, {
-      headers: {
-        'User-Agent': `reddit-feed-bot:${version}`,
-      },
-    });
+    try {
+      const response = await fetch(url, {
+        headers: {
+          'User-Agent': `reddit-feed-bot:${version}`,
+        },
+      });
 
-    if (!response.ok) {
-      console.log(url, response.statusText);
-      continue;
+      if (!response.ok) {
+        console.log(url, response.statusText);
+        continue;
+      }
+
+      const json = await response.json();
+      const { data } = json;
+      children = data?.children;
+    } catch (error) {
+      console.error(error);
     }
-
-    const json = await response.json();
-    const { data } = json;
-    const { children } = data;
 
     for (const child of children.reverse()) {
       const post = child.data;
