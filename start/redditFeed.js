@@ -131,13 +131,14 @@ async function run(client) {
 
       embed.setURL(redditUrl);
 
-      try {
-        client.channels.fetch(feed.channelID).then((channel) => {
+      client.channels
+        .fetch(feed.channelID)
+        .then((channel) => {
           channel.send({ embeds: [embed] });
+        })
+        .catch((err) => {
+          console.log(err);
         });
-      } catch (error) {
-        console.log(feed, error);
-      }
     }
   }
   lastTimeStamp = currentTimeStamp;

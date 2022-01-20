@@ -61,6 +61,8 @@ async function run(client) {
 module.exports = {
   name: 'pandaFeed',
   execute(client) {
+    // temp
+    return;
     lastTimeStamp = Date.now();
     run(client);
     setInterval(() => {
@@ -68,3 +70,13 @@ module.exports = {
     }, interval);
   },
 };
+
+const axios = require('axios');
+const { JSDOM } = require('jsdom');
+
+async function getURL(url) {
+  const { data } = await axios.get(url, { validateStatus: null });
+  const dom = new JSDOM(data, {});
+  const { document } = dom.window;
+  return document;
+}
