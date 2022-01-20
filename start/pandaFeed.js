@@ -71,12 +71,12 @@ module.exports = {
   },
 };
 
-const axios = require('axios');
-const { JSDOM } = require('jsdom');
+// const axios = require('axios');
+// const { JSDOM } = require('jsdom');
 
-async function getURL(url) {
-  const { data } = await axios.get(url, { validateStatus: null });
-  const dom = new JSDOM(data, {});
-  const { document } = dom.window;
-  return document;
-}
+// async function getURL(url) {
+//   const { data } = await axios.get(url, { validateStatus: null });
+//   const dom = new JSDOM(data, {});
+//   const { document } = dom.window;
+//   return document;
+// }
