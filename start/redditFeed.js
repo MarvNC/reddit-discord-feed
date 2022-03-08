@@ -134,7 +134,9 @@ async function run(client) {
       client.channels
         .fetch(feed.channelID)
         .then((channel) => {
-          channel.send({ embeds: [embed] });
+          channel.send({ embeds: [embed] }).catch((err) => {
+            console.log(err);
+          });
         })
         .catch((err) => {
           console.log(err);
