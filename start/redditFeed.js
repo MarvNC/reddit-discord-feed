@@ -40,8 +40,9 @@ async function run(client) {
       children = data?.children;
     } catch (error) {
       console.error(error);
+      continue;
     }
-
+    if(!children) continue;
     for (const child of children.reverse()) {
       const post = child.data;
 
